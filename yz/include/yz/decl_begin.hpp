@@ -1,6 +1,9 @@
 #ifndef __YZ_DECL_BEGIN_HPP__
 #define __YZ_DECL_BEGIN_HPP__
 
+#include <yz/ui.hpp>
+#include <yz/klass.hpp>
+
 #define yz_declare(base_class, class_name) \
 	typedef base_class class_name;
 
@@ -11,5 +14,9 @@
 
 #define yz_declare_with_members_end \
 	}
+
+
+namespace yz 
+{
 
 #endif

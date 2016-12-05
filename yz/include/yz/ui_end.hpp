@@ -1,5 +1,5 @@
-
-} // End of namespace
+}
+//} // End of namespace
 
 #undef QUOTE_
 #undef QUOTE

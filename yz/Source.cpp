@@ -1,20 +1,23 @@
 #include <Windows.h>
+
+
 #include "yz/decl_begin.hpp"
+
 yz_declare_with_members_begin(button, SpecialButton)
 int test;
 void test_func() { MessageBoxA(0, "a", "a", 0); }
 yz_declare_with_members_end;
+
 #include "yz/decl_end.hpp"
+
 
 #include "yz/ui_begin.hpp"
 
-
-
-/*yz_define_with_members(button, SpecialButton)
+yz_define_with_members(button, SpecialButton)
 {
 	self.text = "SpecialButton!";
 	self.test = 1;
-};*/
+};
 
 yz_object(window, main_form)
 {

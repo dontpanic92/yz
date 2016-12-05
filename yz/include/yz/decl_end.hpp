@@ -1,3 +1,3 @@
-
+}
 #undef yz_declare_with_members_begin
 #undef yz_declare_with_members_end
