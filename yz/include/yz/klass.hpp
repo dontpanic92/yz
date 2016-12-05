@@ -18,36 +18,64 @@ namespace yz
 	public:
 
 		// A new class
-		klass_builder_base(const string& name, object* parent, bool create_object) 
-			: _name(name),  _parent(parent), _create_object(create_object)
+		klass_builder_base(const string& name, object* parent) 
+			: _name(name),  _parent(parent)
 		{
 		}
 
 		// Copy from a base class
-		klass_builder_base(const string& basename, const string& name, object* parent, bool create_object)
-			: _basename(basename), _name(name), _parent(parent), _create_object(create_object)
+		klass_builder_base(const string& basename, const string& name, object* parent)
+			: _basename(basename), _name(name), _parent(parent)
 		{
 		}
 
 		void set_klass(klass* kls) { _kls = kls; }
-
-		virtual object* create(const string& name) const = 0;
-		virtual void construct_object(object*) const {};
 
 		virtual klass_builder_base* duplicate() const = 0;
 
 		string name() const { return _name; }
 		string basename() const { return _basename; }
 		object* parent() { return _parent; }
-		bool create_object() const { return _create_object; }
 
 	protected:
 
 		string _name;
 		string _basename;
-		bool _create_object;
 		object* _parent;
 		klass* _kls;
+	};
+
+
+	class klass_define_builder_base : public klass_builder_base
+	{
+	public:
+		klass_define_builder_base(const string& name) : klass_builder_base(name, nullptr)
+		{
+		}
+
+		klass_define_builder_base(const string& basename, const string& name)
+			: klass_builder_base(basename, name, nullptr)
+		{
+		}
+		virtual void construct_base(object*, object*) const = 0;
+	};
+
+
+	class klass_object_builder_base : public klass_builder_base
+	{
+	public:
+		klass_object_builder_base(const string& name, object* parent) : klass_builder_base(name, parent)
+		{
+		}
+
+		klass_object_builder_base(const string& basename, const string& name, object* parent)
+			: klass_builder_base(basename, name, parent)
+		{
+		}
+
+		virtual object* create(const string& name) const = 0;
+		virtual void construct_object(object*) const = 0;
+
 	};
 
 	class klass :public has_child<klass>
@@ -64,7 +92,7 @@ namespace yz
 
 		object* create(const string& name)
 		{
-			object* p = _builder->create(name);
+			object* p = dynamic_cast<klass_object_builder_base*>(_builder)->create(name);
 			return p;
 		}
 
@@ -103,16 +131,60 @@ namespace yz
 
 	extern klass& cls;
 
+	template <class T>
+	class klass_define_builder : public klass_define_builder_base
+	{
+	public:
+		typedef void(constructor_func)(object& parent, T& self);
+		klass_define_builder(const string& name) : klass_define_builder_base(name)
+		{
+		}
+
+		klass_define_builder(const string& basename, const string& name)
+			: klass_define_builder_base(basename, name)
+		{
+		}
+
+		klass_builder_base* duplicate() const
+		{
+			return new klass_define_builder<T>(*this);
+		}
+
+		klass_define_builder<T> operator+(function<constructor_func> f)
+		{
+			_constructor = f;
+			return *this;
+		}
+
+		void construct_base(object* p, object* pr) const override
+		{
+			if (!_basename.empty() && cls.find(_basename)) {
+				const klass_define_builder_base* k = dynamic_cast<const klass_define_builder_base*>(cls.get(_basename)->builder());
+				k->construct_base(p, pr);
+			}
+			if (_constructor) {
+				T* t = dynamic_cast<T*>(p);
+				_constructor(*pr, *t);
+			}
+		}
+		function<constructor_func> _constructor;
+	};
+
+
 	template <class T, class ParentT>
-	class klass_builder : public klass_builder_base
+	class klass_builder : public klass_object_builder_base
 	{
 	public:
 		typedef void(constructor_func)(ParentT& parent, T& self);
 	
-		klass_builder(const string& name, ParentT* parent, bool create_object) 
-			: klass_builder_base(name, parent, create_object) {}
-		klass_builder(const string& basename, const string& name, ParentT* parent, bool create_object)
-			: klass_builder_base(basename, name, parent, create_object) {}
+		klass_builder(const string& name, ParentT* parent) 
+			: klass_object_builder_base(name, parent)
+		{
+		}
+		klass_builder(const string& basename, const string& name, ParentT* parent)
+			: klass_object_builder_base(basename, name, parent)
+		{
+		}
 
 		klass_builder<T, ParentT> operator+(function<constructor_func> f)
 		{
@@ -124,8 +196,8 @@ namespace yz
 		{
 			ParentT* parent = dynamic_cast<ParentT*>(_parent);
 			T* p = new T(name, parent, _kls);
-			construct_object(p);
 			parent->add(p);
+			construct_object(p);
 			p->on_created.emit();
 			return p;
 		}
@@ -134,20 +206,21 @@ namespace yz
 		{
 			return new klass_builder<T, ParentT>(*this);
 		}
-	protected:
-		void construct_object(object* p) const
+		void construct_object(object* p) const override
 		{
 			if (!_basename.empty()) {
-				//const klass* kls = _kls->outer_klass();
 				const klass* kls = _parent->type();
+				object* pr = _parent;
 				while (true) {
 					if (kls->find(_basename)) {
-						kls->get(_basename)->builder()->construct_object(p);
+						const klass_define_builder_base* k = dynamic_cast<const klass_define_builder_base*>(kls->get(_basename)->builder());
+						k->construct_base(p, pr);
 						break;
-					} else if (!_parent->parent()){
+					} else if (!pr->parent()) {
 						break;
 					} else {
-						kls = _parent->parent()->type();
+						kls = pr->parent()->type();
+						pr = pr->parent();
 					}
 				}
 			}
@@ -157,7 +230,7 @@ namespace yz
 				_constructor(*parent, *t);
 			}
 		}
-
+	protected:
 		function<constructor_func> _constructor;
 	};
 	

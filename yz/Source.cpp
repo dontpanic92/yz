@@ -1,6 +1,5 @@
 #include <Windows.h>
 
-
 #include "yz/decl_begin.hpp"
 
 yz_declare_with_members_begin(button, SpecialButton)
@@ -17,6 +16,10 @@ yz_define_with_members(button, SpecialButton)
 {
 	self.text = "SpecialButton!";
 	self.test = 1;
+	yz_object(button, AnotherButton)
+	{
+		self.text = "AnotherButton";
+	};
 };
 
 yz_object(window, main_form)
@@ -29,6 +32,13 @@ yz_object(window, main_form)
 	yz_object(SpecialButton, button1)
 	{
 		test();
+		self.test = 100;
+	};
+
+	yz_object(SpecialButton, button3)
+	{
+		self.x = 300;
+		self.y = 300;
 		self.test = 100;
 	};
 

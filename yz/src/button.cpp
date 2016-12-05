@@ -8,7 +8,7 @@
 using namespace yz;
 using namespace std;
 
-klass button_base = klass_builder<button, object>("button", &object::ui(), false);
+klass button_base = klass_define_builder<button>("button");
 
 button_p::button_p(button* q, const std::string& name, object* parent, klass* klass) : ui_object_p(q, name, parent, klass)
 {

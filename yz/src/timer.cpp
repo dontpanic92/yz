@@ -8,7 +8,7 @@
 using namespace yz;
 using namespace std;
 
-klass timer_base = klass_builder<window, object>("timer", &object::ui(), false);
+klass timer_base = klass_define_builder<window>("timer");
 
 
 timer_p::timer_p(timer* q, const std::string& name, object* parent, klass* klass) : object_p(q, name, parent, klass)

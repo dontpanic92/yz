@@ -13,7 +13,7 @@ namespace yz {
 
 		HINSTANCE hInstance();
 
-		static app* get();
+		static app* get(); 
 
 	protected:
 		//void init_object(const klass_base* kls, object* obj, std::set<std::string>& instantiatedObjects);

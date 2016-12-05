@@ -41,7 +41,8 @@ HINSTANCE app::hInstance()
 
 void init_object(klass* kls)
 {
-	if (!kls->builder()->create_object())
+	auto k = dynamic_cast<const klass_object_builder_base*>(kls->builder());
+	if (!k)
 		return;
 
 	yz::object* obj = kls->create(kls->name());

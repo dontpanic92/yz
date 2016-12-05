@@ -9,7 +9,7 @@
 using namespace yz;
 using namespace std;
 
-klass window_base = klass_builder<window, object>("window", &object::ui(), false);
+klass window_base = klass_define_builder<window>("window");
 
 
 window_p::window_p(window* q, const std::string& name, object* parent, klass* klass) : ui_object_p(q, name, parent, klass)

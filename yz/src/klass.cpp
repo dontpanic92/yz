@@ -11,6 +11,8 @@ klass::klass(klass_builder_base& builder)
 	_builder->set_klass(this);
 	if (_builder->parent())
 		_builder->parent()->type()->add(new klass(*this));
+	else
+		klass::cls().add(new klass(*this));
 }
 
 std::string klass::name() const
