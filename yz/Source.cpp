@@ -35,13 +35,6 @@ yz_object(window, main_form)
 		self.test = 100;
 	};
 
-	yz_object(SpecialButton, button3)
-	{
-		self.x = 300;
-		self.y = 300;
-		self.test = 100;
-	};
-
 	yz_object(button, button2)
 	{
 		self.x = 200;
@@ -58,7 +51,7 @@ yz_object(window, main_form)
 		self.interval = 100;
 		self.triggered_on_start = true;
 		self.repeat = true;
-		static int direction = 1;
+		yz_property int direction = 1;
 		self.on_timer += [&](){
 			button& button1 = parent["button1"]; 
 			if (button1.x > 400)
